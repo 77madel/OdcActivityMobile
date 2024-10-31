@@ -1,4 +1,11 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:odc_formation/pages/profile/profile.dart';
+
+import '../../Model/Activite.dart';
+import 'ParticipantList.dart';
 
 class ActivityListScreen extends StatefulWidget {
   const ActivityListScreen({super.key});
@@ -8,106 +15,146 @@ class ActivityListScreen extends StatefulWidget {
 }
 
 class _ActivityListScreenState extends State<ActivityListScreen> {
+  Future<List<Activite>>? _futureActivites;
+  String searchQuery = ""; // Pour stocker la requête de recherche
 
-  final List<Map<String, dynamic>> activities = [
-    {'name': 'OFAB', 'participants': 30, 'image': 'assets/ofab.png'},
-    {'name': 'ODK', 'participants': 4600, 'image': 'assets/odk.png'},
-    {'name': 'FABLAB', 'participants': 4600, 'image': 'assets/fablab.png'},
-    {'name': 'OMultimedia', 'participants': 4600, 'image': 'assets/omultimedia.png'},
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _futureActivites = fetchActivities(); // Récupérer les activités lors de l'initialisation
+  }
+
+  // Méthode pour récupérer les activités depuis l'API
+  Future<List<Activite>> fetchActivities() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:8080/activite/enCours'),
+      ).timeout(const Duration(seconds: 100));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> activitiesList = json.decode(response.body);
+        return activitiesList.map((json) => Activite.fromJson(json)).toList();
+      } else {
+        throw Exception('Échec du chargement des activités. Code : ${response.statusCode}');
+      }
+    } catch (e) {
+      if (e is TimeoutException) {
+        print('Erreur : La requête a expiré. Vérifiez le serveur.');
+      } else {
+        print('Erreur réseau : $e');
+      }
+      return []; // Retourner une liste vide en cas d'erreur
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   automaticallyImplyLeading: false,
-      //   elevation: 0,
-      //   backgroundColor: Colors.transparent,
-      //   title: Padding(
-      //     padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 5.0), // Ajoute du padding en bas
-      //     child: TextField(
-      //       decoration: InputDecoration(
-      //         hintText: 'Recherche une formation',
-      //         filled: true,
-      //         fillColor: Colors.grey[200],
-      //         prefixIcon: Icon(Icons.search, color: Colors.orange),
-      //         border: OutlineInputBorder(
-      //           borderRadius: BorderRadius.circular(30),
-      //           borderSide: BorderSide.none,
-      //         ),
-      //       ),
-      //     ),
-      //   ),
-      // ),
-      body: Column(
-        // crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 5.0,top: 10,), // Ajoute du padding en bas
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Recherche une formation',
-                filled: true,
-                fillColor: Colors.grey[200],
-                prefixIcon: Icon(Icons.search, color: Colors.orange),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
+      appBar: AppBar(
+        title: TextField(
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value.toLowerCase(); // Mettre à jour la requête de recherche
+            });
+          },
+          decoration: const InputDecoration(
+            hintText: 'Recherche une Activite',
+            border: InputBorder.none,
+            prefixIcon: Icon(Icons.search, color: Colors.orange),
           ),
-          const Text(
-            'Liste des activités en cours',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          GridView.builder(
+        ),
+      ),
+      body: FutureBuilder<List<Activite>>(
+        future: _futureActivites,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erreur : ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('Aucune activité trouvée.'));
+          }
+
+          final activities = snapshot.data!.where((activite) {
+            return activite.nom.toLowerCase().contains(searchQuery);
+          }).toList();
+
+          return GridView.builder(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
+              childAspectRatio: 0.8,
             ),
             itemCount: activities.length,
             itemBuilder: (context, index) {
-              return ActivityCard(activity: activities[index]);
+              return ActivityCard(activite: activities[index]);
             },
-          ),
-        ],
+          );
+        },
       ),
-      //Bottom nav
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Action à réaliser lors de l'appui sur le bouton flottant
+          // Par exemple, vous pouvez naviguer vers un nouvel écran pour ajouter une activité
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => Profile(), // Remplacez par votre écran d'ajout d'activité
+            ),
+          );
+        },
+        child: const Icon(Icons.person,color: Colors.white), // Icône du bouton flottant
+        backgroundColor: Colors.orange, // Couleur de fond du bouton
+      ),
     );
   }
 }
 
 class ActivityCard extends StatelessWidget {
-  final Map<String, dynamic> activity;
+  final Activite activite;
 
-  const ActivityCard({required this.activity});
+  const ActivityCard({super.key, required this.activite});
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Remplacer par vos images d'assets
-            Image.asset(activity['image'], height: 80),
-            SizedBox(height: 16),
-            Text(
-              activity['name'],
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '${activity['participants']} participants',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ParticipantsListScreen(activite: activite),
+          ),
+        );
+      },
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 4,
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/Illustration.png',
+                height: 100,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Icon(Icons.image, size: 80, color: Colors.grey),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                activite.nom,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );

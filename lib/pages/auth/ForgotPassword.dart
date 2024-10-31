@@ -54,13 +54,13 @@ class _PasswordForgotState extends State<PasswordForgot> {
                 ),
               ),
               const SizedBox(height: 40),
-              const TextFieldInpute(
+             /* const TextFieldInpute(
                 // textEditingController: ,
                   hintText: "Entrer your email",
-                  icon: Icons.email
-              ),
+                  icon: Icons.email, textEditingController: null,
+              ),*/
               // button
-              Mybutton(onTab:(){} , text: "Envoyer Email",),
+              Mybutton(text: "Envoyer Email", onTap: () {  },),
               const SizedBox(height: 50),
             ],
           ),

@@ -25,7 +25,7 @@ class _SignupPageState extends State<SignupPage> {
                 width: double.infinity,
                 height: height / 2.8,
                 child: Image.asset("assets/images/Signup.png"),),
-              const TextFieldInpute(
+              /*const TextFieldInpute(
                   // textEditingController: nameController,
                   hintText: "Entrer your name",
                   icon: Icons.person
@@ -42,8 +42,8 @@ class _SignupPageState extends State<SignupPage> {
                   isPass: true,
                   icon: Icons.lock
               ),
-
-              Mybutton(onTab: (){}, text: "S'inscrire"),
+*/
+              Mybutton(text: "S'inscrire", onTap: () {  },),
               SizedBox(height: height / 15),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

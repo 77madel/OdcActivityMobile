@@ -37,7 +37,7 @@ class _InformationPersoState extends State<InformationPerso> {
                 ],
               ),
 
-              const TextFieldInpute(
+            /*  const TextFieldInpute(
                   hintText: "Nom Complet",
                   icon: Icons.abc_outlined
               ),
@@ -55,11 +55,11 @@ class _InformationPersoState extends State<InformationPerso> {
               const TextFieldInpute(
                   hintText: "Telephone",
                   icon: Icons.phone
-              ),
+              ),*/
 
 
               // Bouton de déconnexion
-              Mybutton(onTab: (){}, text: "Modifier")
+              Mybutton(text: "Modifier", onTap: () {  },)
             ],
           ),
         ),

@@ -64,7 +64,7 @@ class Passwordchange extends StatelessWidget {
               ),
             ),
             // Bouton de confirmation
-          Mybutton(onTab: (){}, text: "Continue")
+          Mybutton(text: "Continue", onTap: () {  },)
           ],
         ),
       ),

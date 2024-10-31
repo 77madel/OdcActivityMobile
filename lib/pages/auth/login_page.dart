@@ -1,7 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:odc_formation/pages/auth/signUp_page.dart';
-import 'package:odc_formation/pages/home/home.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:odc_formation/pages/auth/signUp_page.dart';
+
+import '../activite/ActivitePage.dart';
 import '../widget/Button.dart';
 import '../widget/text_field.dart';
 
@@ -13,6 +16,52 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  Future<void> login(String username, String password) async {
+    final url = Uri.parse('http://localhost:8080/auth/login'); // Remplacez par la bonne IP
+
+    try {
+      print('Envoi de la requête avec: { "username": $username, "password": $password }');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'username': username,
+          'password': password,
+        }),
+      );
+
+      print('Statut de la réponse: ${response.statusCode}');
+      print('Corps de la réponse: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        print('Token: ${responseData['token']}');
+        // Naviguer vers la page d'accueil après connexion réussie
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ActivityListScreen()),
+        );
+      } else {
+        String errorMessage = 'Échec de l\'authentification';
+        if (response.statusCode == 401) {
+          errorMessage = 'Nom d\'utilisateur ou mot de passe incorrect';
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (error) {
+      print('Erreur de connexion: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de connexion: ${error.toString()}')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
@@ -21,100 +70,48 @@ class _LoginPageState extends State<LoginPage> {
         child: SizedBox(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
-            children:[
+            children: [
               SizedBox(
                 width: double.infinity,
-                height: height/2.7,
-                child: Image.asset("assets/images/login.png"),),
-              const TextFieldInpute(
-                  // textEditingController: ,
-                  hintText: "Entrer your email",
-                  icon: Icons.email
+                height: height / 2.7,
+                child: Image.asset("assets/images/login.png"),
               ),
-              const TextFieldInpute(
-                  // textEditingController: ,
-                  hintText: "Entrer your password",
-                  isPass: true,
-                  icon: Icons.lock
+              TextFieldInpute(
+                textEditingController: _usernameController,
+                hintText: "Entrer votre email",
+                icon: Icons.email,
               ),
-              //we call our forgot password below the login in button
-              // const ForgotPassword(),
+              TextFieldInpute(
+                textEditingController: _passwordController,
+                hintText: "Entrer votre mot de passe",
+                isPass: true,
+                icon: Icons.lock,
+              ),
               Mybutton(
-                onTab: (){},
+                onTap: () async {
+                  String username = _usernameController.text.trim();
+                  String password = _passwordController.text.trim();
+
+                  print('Username: "$username"');
+                  print('Password: "$password"');
+
+                  if (username.isEmpty || password.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Veuillez entrer un nom d\'utilisateur et un mot de passe')),
+                    );
+                    return;
+                  }
+
+                  try {
+                    await login(username, password);
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Erreur de connexion: ${e.toString()}')),
+                    );
+                  }
+                },
                 text: "Connexion",
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(height: 1, color: Colors.black54),
-                  ),
-                  const Text(" ou "),
-                  Expanded(
-                    child: Container(height: 1, color: Colors.black54),
-                  )
-                ],
-              ),
-
-              // SizedBox(height: height / 25),
-              Padding(
-                padding:const EdgeInsets.symmetric(horizontal: 25, vertical: 10),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
-                  onPressed: () async {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Home(),
-                      ),
-                    );
-                  },
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Image.network("https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fcdn.imgbin.com%2F23%2F7%2F2%2Fimgbin-google-logo-google-search-icon-google-google-logo-hEJMjnfCV4MA1gDtjaWTv5kc1.jpg&f=1&nofb=1&ipt=41405f73f63b2021154c49eb700ac03e49de25bcbb217384a134009fa5dcad84&ipo=images",height: 35
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        "Continue with Google",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 20,
-                          color: Colors.white,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 10, left: 50),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text("Vous n’avez pas de compte ? ",style: TextStyle(fontSize: 16),),
-                    GestureDetector(
-                      onTap: ()
-                      {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignupPage(),
-                          ),
-                        );
-                      },
-
-                      child: const Text(
-                        "S'inscrire",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,fontSize: 16
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              )
             ],
           ),
         ),

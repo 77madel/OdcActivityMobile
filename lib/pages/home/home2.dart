@@ -63,7 +63,7 @@ class Home2 extends StatelessWidget {
               ),
               const SizedBox(height: 40),
               // button
-              Mybutton(onTab:(){} , text: "Suivant",),
+              Mybutton(text: "Suivant", onTap: () {  },),
               const SizedBox(height: 50),
             ],
           ),

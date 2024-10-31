@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:odc_formation/pages/activite/ActivitePage.dart';
+import 'package:odc_formation/pages/activite/ParticipantList.dart';
 import 'package:odc_formation/pages/auth/login_page.dart';
 import 'package:odc_formation/pages/home/home.dart';
 import 'package:odc_formation/pages/profile/profile.dart';
@@ -23,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: ActivityListScreen(),
+      home: LoginPage(),
     );
   }
 }

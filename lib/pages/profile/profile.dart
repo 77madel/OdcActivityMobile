@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:odc_formation/pages/home/home.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart'; // Importer jwt_decoder
 import 'package:odc_formation/pages/auth/NewPassword.dart';
 import 'package:odc_formation/pages/profile/information.dart';
-import 'package:odc_formation/pages/profile/notifications.dart';
 import 'package:odc_formation/pages/widget/Button.dart';
+
+import '../auth/PasswordChange.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -12,10 +16,47 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+  String nom = "Utilisateur"; // Valeur par défaut
+  String username = "utilisateur@example.com"; // Valeur par défaut
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  // Fonction pour charger les informations de l'utilisateur à partir du token
+  Future<void> _loadUserInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token != null && !JwtDecoder.isExpired(token)) {
+      // Décoder le token pour récupérer les informations
+      Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      setState(() {
+        nom = decodedToken['nom'] ?? "Utilisateur"; // Mise à jour du nom
+        username = decodedToken['username'] ?? "utilisateur@example.com"; // Mise à jour du nom d'utilisateur
+      });
+    } else {
+      print('Token non valide ou expiré');
+    }
+  }
+
+  // Fonction pour déconnecter l'utilisateur
+  Future<void> _logout() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Supprimer toutes les données de préférence
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Passwordchange()), // Rediriger vers l'écran d'accueil ou de connexion
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(iconTheme: const IconThemeData(color:Colors.orange),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.orange),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -30,79 +71,61 @@ class _ProfileState extends State<Profile> {
                 radius: 50,
                 backgroundImage: AssetImage('assets/images/Illustration.png'), // Remplacez par votre propre image
               ),
-              const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Madou KONE",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              const SizedBox(height: 16),
+              Text(
+                nom,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const Text(
-                "madou@gmail.com",
-                style: TextStyle(color: Colors.grey),
+              Text(
+                username,
+                style: const TextStyle(color: Colors.grey),
               ),
               const SizedBox(height: 16),
               // Liste des options
-              OptionItem(
-                icon: Icons.lightbulb_outline,
-                text: "Compétences",
-                onTap: () {
-                  // Action pour Compétences
-                },
-              ),
               const Divider(),
               OptionItem(
                 icon: Icons.badge_outlined,
-                text: "Information's",
+                text: "Informations",
                 onTap: () {
-                  Navigator.push(context,
-                  MaterialPageRoute(
-                      builder: (context) => const InformationPerso()
-                  )
-                  );
-                },
-              ),
-              const Divider(),
-              OptionItem(
-                icon: Icons.notifications_outlined,
-                text: "Notifications",
-                onTap: () {
-                  Navigator.push(context,
-                      MaterialPageRoute(
-                          builder: (context) =>  const Notifications()
-                      )
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const InformationPerso(),
+                    ),
                   );
                 },
               ),
               const Divider(),
               OptionItem(
                 icon: Icons.password,
-                text: "Change Mot de Passe",
+                text: "Changer Mot de Passe",
                 onTap: () {
                   Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const NewPassword())
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NewPassword(),
+                    ),
                   );
                 },
               ),
               const Divider(),
               OptionItem(
                 icon: Icons.info_outline,
-                text: "A Propos",
+                text: "À Propos",
                 onTap: () {
-                  // Action pour A Propos
+                  // Action pour À Propos
                 },
               ),
               const Divider(),
-              const SizedBox(height:5),
+              const SizedBox(height: 5),
               // Bouton de déconnexion
-             Mybutton(onTab: (){}, text: "Déconnexion")
+              Mybutton(
+                text: "Déconnexion",
+                onTap: _logout,
+              ),
             ],
           ),
         ),
@@ -132,9 +155,9 @@ class OptionItem extends StatelessWidget {
         leading: Icon(icon, size: 30, color: Colors.black),
         title: Text(
           text,
-          style: TextStyle(fontSize: 18),
+          style: const TextStyle(fontSize: 18),
         ),
-        trailing: Icon(Icons.arrow_forward_ios, color: Colors.black),
+        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black),
       ),
     );
   }

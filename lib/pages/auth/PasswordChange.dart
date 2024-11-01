@@ -1,8 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:odc_formation/pages/widget/Button.dart';
+import 'package:odc_formation/pages/profile/profile.dart';
 
-class Passwordchange extends StatelessWidget {
+class Passwordchange extends StatefulWidget {
   const Passwordchange({super.key});
+
+  @override
+  State<Passwordchange> createState() => _PasswordchangeState();
+}
+
+class _PasswordchangeState extends State<Passwordchange> {
+  @override
+  void initState() {
+    super.initState();
+    // Démarre un temporisateur de 3 secondes avant de rediriger
+    Future.delayed(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Profile()), // Remplacez par la page de destination
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,13 +40,13 @@ class Passwordchange extends StatelessWidget {
                     child: IconButton(
                       icon: Icon(Icons.arrow_back_ios, color: Colors.orange),
                       onPressed: () {
-                        // Action pour revenir
+                        Navigator.pop(context); // Action pour revenir
                       },
                     ),
                   ),
-                  // Image illustrant le succès (Remplacer par une image réseau ou locale)
+                  // Image illustrant le succès
                   Image.asset(
-                    'assets/images/Security.png', // Remplacer par ton image
+                    'assets/images/Security.png', // Remplacer par votre image
                   ),
                 ],
               ),
@@ -64,7 +81,7 @@ class Passwordchange extends StatelessWidget {
               ),
             ),
             // Bouton de confirmation
-          Mybutton(text: "Continue", onTap: () {  },)
+            /* Mybutton(text: "Continue", onTap: () {  },) */
           ],
         ),
       ),

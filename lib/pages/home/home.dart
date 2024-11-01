@@ -1,61 +1,62 @@
 import 'package:flutter/material.dart';
-import 'package:odc_formation/pages/widget/Button.dart';
+import 'package:odc_formation/pages/auth/login_page.dart';
 
-class Home extends StatelessWidget {
+class Home extends StatefulWidget {
   const Home({super.key});
+
+  @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialisation de l'AnimationController
+    _controller = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true); // Boucle l'animation
+
+    _animation = Tween<double>(begin: 0.8, end: 1.2).animate(_controller);
+
+    // Navigation vers la page de connexion après 5 secondes
+    Future.delayed(const Duration(seconds: 5), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()), // Remplacez par la page de destination
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose(); // Dispose de l'AnimationController
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Spacer(),
-              // Image or illustration
-              Image.asset(
-                'assets/images/Illustration.png', // Replace with your own image asset
-                height: 200,
-              ),
-              Spacer(),
-              // Welcome text
-              Text(
-                'Bienvenue sur Plateforme ODC Formation',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  foreground: Paint()
-                    ..shader = const LinearGradient(
-                      colors: <Color>[Colors.orange, Colors.black87],
-                    ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0)),
-                ),
-              ),
-              Spacer(),
-              // Dots indicator
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  buildDot(Colors.orange),
-                  const SizedBox(width: 4),
-                  buildDot(Colors.black87),
-                  const SizedBox(width: 4),
-                   buildDot(Colors.black87),
-                ],
-              ),
-              const SizedBox(height: 40),
-              // button
-              Mybutton( text: "Suivant", onTap: () {  },),
-              const SizedBox(height: 50),
-            ],
+        child: Center(
+          child: ScaleTransition(
+            scale: _animation,
+            child: Image.asset(
+              'assets/images/logoOdc.png', // Remplacez par votre propre image
+              height: 250,
+            ),
           ),
         ),
       ),
     );
   }
 }
+
 
 Widget buildDot(Color color) {
   return Container(
@@ -67,4 +68,3 @@ Widget buildDot(Color color) {
     ),
   );
 }
-

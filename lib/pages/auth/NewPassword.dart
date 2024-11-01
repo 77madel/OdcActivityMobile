@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:odc_formation/pages/auth/PasswordChange.dart';
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widget/Button.dart';
 import '../widget/text_field.dart';
 
@@ -21,19 +23,17 @@ class _NewPasswordState extends State<NewPassword> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView( // Ajoutez ce widget pour permettre le défilement
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 20), // Espacement au-dessus
-                // Image or illustration
+                const SizedBox(height: 20),
                 Image.asset(
-                  'assets/images/Forgot-password.png', // Remplacez par votre propre image
+                  'assets/images/Forgot-password.png',
                   height: 250,
                 ),
-                // Welcome text
                 Text(
                   'Créer un nouveau Mot De Passe',
                   textAlign: TextAlign.center,
@@ -86,10 +86,10 @@ class _NewPasswordState extends State<NewPassword> {
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
-                // Button
                 Mybutton(
-                  text: "Changé",
+                  text: "Changer",
                   onTap: _resetPassword,
+
                 ),
                 const SizedBox(height: 50),
               ],
@@ -112,24 +112,41 @@ class _NewPasswordState extends State<NewPassword> {
       return;
     }
 
+    // Récupérer le token depuis SharedPreferences
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? authToken = prefs.getString('auth_token');
+
+    if (authToken == null) {
+      setState(() {
+        _errorMessage = "Vous devez être connecté pour changer le mot de passe.";
+      });
+      return;
+    }
+
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:8080/utilisateur/change-password'), // Remplacez par votre URL d'API
+        Uri.parse('http://localhost:8080/utilisateur/change-password'),
         headers: {
           'Content-Type': 'application/json',
-          // Ajoutez d'autres en-têtes si nécessaire, comme le token d'authentification
+          'Authorization': 'Bearer $authToken', // Envoyer le token d'authentification
         },
         body: jsonEncode({
-          'ancienPassword': oldPassword, // Inclure l'ancien mot de passe
+          'ancienPassword': oldPassword,
           'newPassword': newPassword,
         }),
       );
 
       if (response.statusCode == 200) {
-        // Traitement en cas de succès
-        Navigator.pop(context); // Retour ou redirection après succès
+        // Optionnel : Rediriger vers une autre page, par exemple la page de profil
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Passwordchange()), // Remplacez par la page de destination
+        ); // Redirection après succès
+      } else if (response.statusCode == 401) {
+        setState(() {
+          _errorMessage = "Session expirée ou non autorisée.";
+        });
       } else {
-        // Gestion des erreurs
         setState(() {
           _errorMessage = "Une erreur s'est produite. Veuillez réessayer.";
         });

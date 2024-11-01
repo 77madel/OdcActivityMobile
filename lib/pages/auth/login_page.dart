@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odc_formation/pages/auth/signUp_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../activite/ActivitePage.dart';
 import '../widget/Button.dart';
@@ -19,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  Future<void> login(String username, String password) async {
+  /*Future<void> login(String username, String password) async {
     final url = Uri.parse('http://localhost:8080/auth/login'); // Remplacez par la bonne IP
 
     try {
@@ -60,13 +61,70 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(content: Text('Erreur de connexion: ${error.toString()}')),
       );
     }
+  }*/
+
+  Future<void> login(String username, String password) async {
+    final url = Uri.parse('http://localhost:8080/auth/login'); // Remplacez par l'IP correcte
+
+    try {
+      // Envoi de la requête de connexion
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({
+          'username': username,
+          'password': password,
+        }),
+      );
+
+      // Débogage : Statut et corps de la réponse
+      print('Statut de la réponse: ${response.statusCode}');
+      print('Corps de la réponse: ${response.body}');
+
+      // Vérifiez si la réponse est réussie
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final token = responseData['bearer']; // Assurez-vous que c'est le bon champ
+
+        // Vérifiez si le token est null ou vide
+        if (token == null || token.isEmpty) {
+          throw Exception('Token est null ou vide');
+        }
+
+        // Stocker le token dans SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('auth_token', token);
+        print('Token stocké: $token'); // Vérifiez que le token est bien stocké
+
+        // Naviguer vers la page d'accueil après connexion réussie
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const ActivityListScreen()),
+        );
+      } else {
+        String errorMessage = 'Échec de l\'authentification';
+        if (response.statusCode == 401) {
+          errorMessage = 'Nom d\'utilisateur ou mot de passe incorrect';
+        } else {
+          errorMessage = 'Erreur: ${response.statusCode} ${response.reasonPhrase}';
+        }
+        throw Exception(errorMessage);
+      }
+    } catch (error) {
+      print('Erreur de connexion: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de connexion: ${error.toString()}')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: SizedBox(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:odc_formation/pages/profile/profile.dart';
-
 import '../../Model/Activite.dart';
 import 'ParticipantList.dart';
 
@@ -96,15 +95,14 @@ class _ActivityListScreenState extends State<ActivityListScreen> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Action à réaliser lors de l'appui sur le bouton flottant
-          // Par exemple, vous pouvez naviguer vers un nouvel écran pour ajouter une activité
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => Profile(), // Remplacez par votre écran d'ajout d'activité
+              builder: (context) => const Profile(), // Remplacez par votre écran d'ajout d'activité
             ),
           );
         },
-        child: const Icon(Icons.person,color: Colors.white), // Icône du bouton flottant
+        child: const Icon(Icons.person, color: Colors.white), // Icône du bouton flottant
         backgroundColor: Colors.orange, // Couleur de fond du bouton
       ),
     );

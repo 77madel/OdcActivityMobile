@@ -47,7 +47,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
           child: ScaleTransition(
             scale: _animation,
             child: Image.asset(
-              'assets/images/logoOdc.png', // Remplacez par votre propre image
+              'assets/images/logo_odc.png', // Remplacez par votre propre image
               height: 250,
             ),
           ),
